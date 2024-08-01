@@ -36,3 +36,39 @@
     transform: rotate(360deg);
   }
 }
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 12px;
+  font-size: 100%;
+  font-family: 'Open Sans', sans-serif;
+  color: white;
+  height: 100%;
+  background: linear-gradient(to bottom, rgb(101, 107, 211) 0%, rgb(156, 191, 211) 100%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+img {
+  max-width: 300px;
+  border-radius: 10px;
+  user-select: none;
+  -webkit-user-select: none;
+  /* For Safari/Chrome */
+  -moz-user-select: none;
+  /* For Firefox */
+  -ms-user-select: none;
+  /* For Internet Explorer/Edge */
+  pointer-events: none;
+}
+
+@media screen and (min-width: 700px) {
+  body {
+    margin: 20px;
+  }
+}

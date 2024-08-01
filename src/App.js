@@ -1,24 +1,28 @@
-import logo from './logo.svg';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css';
+import HeaderComponent from './components/header';
+import HomeComponent from './components/home';
+import { Layout } from 'antd';
+import { Content } from 'antd/es/layout/layout';
+import MemberListComponent from './components/listMember';
+import ManageCalories from './components/manageCalories';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BrowserRouter>
+      <Layout style={{background:"none"}}>
+        <HeaderComponent></HeaderComponent>
+        <Content>
+          <Routes>
+            <Route path="/" element={<HomeComponent />}></Route>
+            <Route path="/member" element={<MemberListComponent/>}></Route>
+            <Route path="/manageCalories" element={<ManageCalories/>}></Route>
+          </Routes>
+        </Content>
+
+        
+      </Layout>
+    </BrowserRouter>
   );
 }
 
