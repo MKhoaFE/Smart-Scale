@@ -46,7 +46,7 @@
 body {
   margin: 12px;
   font-size: 100%;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'Roboto', sans-serif;
   color: white;
   height: 100%;
   background: linear-gradient(to bottom, rgb(101, 107, 211) 0%, rgb(156, 191, 211) 100%);
@@ -71,4 +71,14 @@ img {
   body {
     margin: 20px;
   }
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 500; /* Thiết lập độ đậm của chữ cho tiêu đề */
+}
+p {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1rem;
+  color: #666;
 }

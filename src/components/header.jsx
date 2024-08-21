@@ -9,10 +9,10 @@ import MenuItem from "@mui/material/MenuItem";
 import Menu from "@mui/material/Menu";
 import MenuIcon from "@mui/icons-material/Menu";
 import AccountCircle from "@mui/icons-material/AccountCircle";
-import MailIcon from "@mui/icons-material/Mail";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import MoreIcon from "@mui/icons-material/MoreVert";
 import "bootstrap/dist/css/bootstrap.min.css";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import {
   Divider,
   Drawer,
@@ -22,20 +22,22 @@ import {
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
-import SettingsIcon from "@mui/icons-material/Settings";
-import MonitorHeartIcon from "@mui/icons-material/MonitorHeart";
 import HomeIcon from "@mui/icons-material/Home";
 import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
+import MonitorHeartIcon from "@mui/icons-material/MonitorHeart";
 import DevicesOtherIcon from "@mui/icons-material/DevicesOther";
 import LiveHelpIcon from "@mui/icons-material/LiveHelp";
+import SettingsIcon from "@mui/icons-material/Settings";
 import { Link } from "react-router-dom";
+
 export default function HeaderComponent() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
+  const [notificationAnchorEl, setNotificationAnchorEl] = React.useState(null);
 
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
+  const isNotificationMenuOpen = Boolean(notificationAnchorEl);
 
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -52,6 +54,14 @@ export default function HeaderComponent() {
 
   const handleMobileMenuOpen = (event) => {
     setMobileMoreAnchorEl(event.currentTarget);
+  };
+
+  const handleNotificationMenuOpen = (event) => {
+    setNotificationAnchorEl(event.currentTarget);
+  };
+
+  const handleNotificationMenuClose = () => {
+    setNotificationAnchorEl(null);
   };
 
   const menuId = "primary-search-account-menu";
@@ -95,7 +105,7 @@ export default function HeaderComponent() {
     >
       <MenuItem>
         <IconButton size="large" aria-label="show 4 new mails" color="inherit">
-          <Badge badgeContent={4} color="error">
+          <Badge>
             <SettingsIcon />
           </Badge>
         </IconButton>
@@ -127,6 +137,37 @@ export default function HeaderComponent() {
       </MenuItem>
     </Menu>
   );
+
+  const notificationMenuId = "primary-search-notification-menu";
+  const renderNotificationMenu = (
+    <Menu
+      anchorEl={notificationAnchorEl}
+      anchorOrigin={{
+        vertical: "top",
+        horizontal: "right",
+      }}
+      id={notificationMenuId}
+      keepMounted
+      transformOrigin={{
+        vertical: "top",
+        horizontal: "right",
+      }}
+      open={isNotificationMenuOpen}
+      onClose={handleNotificationMenuClose}
+    >
+      <MenuItem onClick={handleNotificationMenuClose}>
+        Notification 1
+      </MenuItem>
+      <MenuItem onClick={handleNotificationMenuClose}>
+        Notification 2
+      </MenuItem>
+      <MenuItem onClick={handleNotificationMenuClose}>
+        Notification 3
+      </MenuItem>
+      {/* Add more notifications as needed */}
+    </Menu>
+  );
+
   const [open, setOpen] = React.useState(false);
 
   const toggleDrawer = (newOpen) => () => {
@@ -153,6 +194,16 @@ export default function HeaderComponent() {
       </List>
 
       <List>
+        {["Calories"].map((text, index) => (
+          <ListItem key={text} disablePadding>
+            <ListItemButton component={Link} to="/CaloriesonFood">
+              <ListItemIcon>{<FavoriteBorderIcon />}</ListItemIcon>
+              <ListItemText primary={text} />
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+      <List>
         {["Quản lý cân nặng"].map((text, index) => (
           <ListItem key={text} disablePadding>
             <ListItemButton component={Link} to="/manageCalories">
@@ -166,9 +217,16 @@ export default function HeaderComponent() {
       <List>
         {["Thiết bị", "Giới thiệu sản phẩm"].map((text, index) => (
           <ListItem key={text} disablePadding>
-            <ListItemButton component={Link} to={index % 2 === 0 ? "/product" : "/"}>
+            <ListItemButton
+              component={Link}
+              to={index % 2 === 0 ? "/product" : "/"}
+            >
               <ListItemIcon>
-                {index % 2 === 0 ? <DevicesOtherIcon /> : <LiveHelpIcon />}
+                {index % 2 === 0 ? (
+                  <DevicesOtherIcon />
+                ) : (
+                  <LiveHelpIcon />
+                )}
               </ListItemIcon>
               <ListItemText primary={text} />
             </ListItemButton>
@@ -177,6 +235,7 @@ export default function HeaderComponent() {
       </List>
     </Box>
   );
+
   return (
     <>
       <div className="">
@@ -219,6 +278,7 @@ export default function HeaderComponent() {
                   size="large"
                   aria-label="show 17 new notifications"
                   color="inherit"
+                  onClick={handleNotificationMenuOpen} // Thêm sự kiện này
                 >
                   <Badge badgeContent={17} color="error">
                     <NotificationsIcon />
@@ -252,6 +312,7 @@ export default function HeaderComponent() {
           </AppBar>
           {renderMobileMenu}
           {renderMenu}
+          {renderNotificationMenu} {/* Thêm phần này để hiển thị menu thông báo */}
         </Box>
       </div>
     </>
