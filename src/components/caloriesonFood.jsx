@@ -3,35 +3,24 @@ import "./global.css";
 import { Layout } from "antd";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../App.css";
-import SettingsIcon from "@mui/icons-material/Settings";
 import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
 import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
 import CardMedia from "@mui/material/CardMedia";
 import Typography from "@mui/material/Typography";
-import { child, get, getDatabase, ref } from "firebase/database";
+import { child, get, getDatabase, ref, update, set } from "firebase/database";
 
 function CaloriesonFood({ data }) {
-  const [open, setOpen] = useState(false);
   const [weightToday, setWeightToday] = useState(null);
   const [currentDate, setCurrentDate] = useState("");
   const [selectedFoods, setSelectedFoods] = useState([]);
   const [totalCalories, setTotalCalories] = useState(0);
+  const [measurements, setMeasurements] = useState([]);
+  const [currentMeasurement, setCurrentMeasurement] = useState(null);
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
+  const token = "7466908078:AAHJm7ZsIN1pZw81s1Y--4n4_w7PIbNx6ME";
+  const chat_id = -4580422151;
 
   const foodItems = [
     {
@@ -73,7 +62,68 @@ function CaloriesonFood({ data }) {
   ];
 
   const handleAddFood = (food) => {
-    setSelectedFoods((prevSelectedFoods) => [...prevSelectedFoods, food]);
+    if (!currentMeasurement) return;
+
+    const caloriesFromFood = (food.calories * currentMeasurement) / 100;
+    setTotalCalories((prevTotal) => prevTotal + caloriesFromFood);
+
+    setSelectedFoods((prevSelectedFoods) => [
+      ...prevSelectedFoods,
+      { ...food, calculatedCalories: caloriesFromFood },
+    ]);
+
+    const nextMeasurements = measurements.slice(1);
+    setMeasurements(nextMeasurements);
+    setCurrentMeasurement(nextMeasurements[0]);
+
+    const dbRef = ref(getDatabase());
+
+    if (nextMeasurements.length > 0) {
+      const updatedMeasurements = Object.fromEntries(
+        nextMeasurements.map((val, index) => [`Lần đo ${index + 1}`, val])
+      );
+
+      update(dbRef, { [`day/${currentDate}`]: updatedMeasurements })
+        .then(() => {
+          return update(dbRef, { [`day/${currentDate}/Lần đo 1`]: null });
+        })
+        .catch((error) => {
+          console.error("Error updating data:", error);
+        });
+    } else {
+      update(dbRef, { [`day/${currentDate}/Lần đo 1`]: null }).catch((error) =>
+        console.error("Error updating data:", error)
+      );
+    }
+  };
+
+  const handleSubmitCalories = () => {
+    const dbRef = ref(getDatabase(), `day/${currentDate}/TotalCalories`);
+
+    // Đẩy tổng số calories lên Firebase
+    set(dbRef, totalCalories)
+      .then(() => {
+        console.log("Total calories saved to Firebase.");
+      })
+      .catch((error) => {
+        console.error("Error saving calories to Firebase:", error);
+      });
+
+    // Gửi thông báo qua Telegram
+    const my_text = `Total Calories consumed on ${currentDate}: ${totalCalories.toFixed(2)} kcal`;
+    const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent(my_text)}`;
+
+    fetch(url)
+      .then((response) => {
+        if (response.ok) {
+          console.log("Notification sent to Telegram.");
+        } else {
+          console.error("Error sending notification to Telegram.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error sending notification to Telegram:", error);
+      });
   };
 
   useEffect(() => {
@@ -82,17 +132,24 @@ function CaloriesonFood({ data }) {
     const day = today.getDate();
     const month = today.getMonth() + 1;
     const year = today.getFullYear();
-
-    // Format ngày theo định dạng trong Firebase: YYYY-MM-DD
+  
     const formattedDate = `${year}-${month < 10 ? `0${month}` : month}-${
       day < 10 ? `0${day}` : day
     }`;
-    setCurrentDate(formattedDate); // Cập nhật ngày hiện tại
-
+    setCurrentDate(formattedDate);
+  
     get(child(dbRef, `day/${formattedDate}`))
       .then((snapshot) => {
         if (snapshot.exists()) {
-          setWeightToday(snapshot.val().kg);
+          const data = snapshot.val();
+          
+          // Lọc ra những keys có chứa "Lần đo" và chỉ lấy giá trị kg
+          const measurementsArray = Object.keys(data)
+            .filter(key => key.startsWith("Lần đo"))
+            .map(key => Number(data[key]));
+          
+          setMeasurements(measurementsArray);
+          setCurrentMeasurement(measurementsArray[0]);
         } else {
           setWeightToday(0);
         }
@@ -101,16 +158,7 @@ function CaloriesonFood({ data }) {
         console.error("Error fetching data:", error);
       });
   }, []);
-
-  useEffect(() => {
-    if (selectedFoods.length > 0) {
-      const totalCalories = selectedFoods.reduce(
-        (total, food) => total + (food.calories * weightToday) / 100,
-        0
-      );
-      setTotalCalories(totalCalories);
-    }
-  }, [selectedFoods, weightToday]);
+  
 
   return (
     <>
@@ -129,50 +177,6 @@ function CaloriesonFood({ data }) {
         >
           <div className="content d-flex align-items-center justify-content-between ">
             <h2>Ngày: {currentDate}</h2>
-
-            <React.Fragment>
-              <Button
-                className="btn"
-                variant="outlined"
-                onClick={handleClickOpen}
-              >
-                <SettingsIcon />
-              </Button>
-              <Dialog
-                open={open}
-                onClose={handleClose}
-                PaperProps={{
-                  component: "form",
-                  onSubmit: (event) => {
-                    event.preventDefault();
-                    const formData = new FormData(event.currentTarget);
-                    const formJson = Object.fromEntries(formData.entries());
-                    const email = formJson.email;
-                    console.log(email);
-                    handleClose();
-                  },
-                }}
-              >
-                <DialogTitle>
-                  Set cảnh báo Calories được nạp vào cơ thể
-                </DialogTitle>
-                <DialogContent>
-                  <DialogContentText></DialogContentText>
-                  <TextField
-                    autoFocus
-                    required
-                    margin="dense"
-                    label="Calories:"
-                    fullWidth
-                    variant="standard"
-                  />
-                </DialogContent>
-                <DialogActions>
-                  <Button onClick={handleClose}>Cancel</Button>
-                  <Button type="submit">Set</Button>
-                </DialogActions>
-              </Dialog>
-            </React.Fragment>
           </div>
         </Layout>
       </div>
@@ -192,7 +196,7 @@ function CaloriesonFood({ data }) {
           <div className="content">
             <h5>
               Trọng lượng đồ ăn vừa cân:{" "}
-              {weightToday ? weightToday : "Không có dữ liệu"} gram
+              {currentMeasurement ? currentMeasurement : "Không có dữ liệu"} gram
             </h5>
             <h5>Thực phẩm ngày hôm nay:</h5>
             <div className="list d-flex flex-wrap justify-content-between align-items-center">
@@ -227,18 +231,20 @@ function CaloriesonFood({ data }) {
                 <>
                   <ul>
                     {selectedFoods.map((food, index) => (
-                      <li key={index}>{food.name}</li>
+                      <li key={index}>
+                        {food.name}: {food.calculatedCalories.toFixed(2)} kcal
+                      </li>
                     ))}
                   </ul>
-                  <h6>
-                    Tổng Calories: {totalCalories.toFixed(2)} kcal
-                  </h6>
+                  <h6>Tổng Calories: {totalCalories.toFixed(2)} kcal</h6>
                 </>
               ) : (
                 <p>Chưa có món ăn nào được thêm vào.</p>
               )}
-            </div> 
-            <Button>Tổng cộng</Button>
+            </div>
+            <Button variant="contained" color="primary" onClick={handleSubmitCalories}>
+              Submit
+            </Button>
           </div>
         </Layout>
       </div>

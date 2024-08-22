@@ -114,7 +114,7 @@ export default function HeaderComponent() {
       <MenuItem>
         <IconButton
           size="large"
-          aria-label="show 17 new notifications"
+          aria-label="show 3 new notifications"
           color="inherit"
         >
           <Badge badgeContent={3} color="error">
@@ -280,7 +280,7 @@ export default function HeaderComponent() {
                   color="inherit"
                   onClick={handleNotificationMenuOpen} // Thêm sự kiện này
                 >
-                  <Badge badgeContent={17} color="error">
+                  <Badge badgeContent={3} color="error">
                     <NotificationsIcon />
                   </Badge>
                 </IconButton>
