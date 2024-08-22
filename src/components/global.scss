@@ -1,26 +1,50 @@
-.container{
-    color: black;
+.container {
+  color: black;
 }
 
-
-.home{
-    .content{
-        padding: 15px;
-        .image{
-            display: flex;
-            gap: 2rem;
-            margin: 0 auto;
-            justify-content: center;
-            align-items: center;
-            img{
-                
-            }
-     
-        }
+.home {
+  .content {
+    padding: 15px;
+    .image {
+      display: flex;
+      gap: 2rem;
+      margin: 0 auto;
+      justify-content: center;
+      align-items: center;
+      img {
+      }
     }
+  }
 }
 
-.btn{
-    cursor: pointer;
-    border: none;
+.btn {
+  cursor: pointer;
+  border: none;
+}
+
+.bmi-result {
+  .result {
+    width: 20%;
+    background-color: green;
+    padding: 10px;
+    color: white;
+    font-weight: 700;
+    line-height: 52px;
+    font-size: 32px;
+    text-align: center;
+  }
+  .description {
+    padding: 10px;
+    width: 80%;
+    background-color: #cee8fa;
+    color: black;
+    font-weight: 600;
+    font-size: 25px;
+    line-height: 1.57;
+    p{
+        height: 100%;
+        display: flex;align-items: center;
+        font-size: 25px;
+    }
+  }
 }

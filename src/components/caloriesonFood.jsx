@@ -238,6 +238,7 @@ function CaloriesonFood({ data }) {
                 <p>Chưa có món ăn nào được thêm vào.</p>
               )}
             </div> 
+            <Button>Tổng cộng</Button>
           </div>
         </Layout>
       </div>
