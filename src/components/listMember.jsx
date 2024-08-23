@@ -34,7 +34,7 @@ function MemberListComponent() {
                 <PersonIcon />
               </Avatar>
             </ListItemAvatar>
-            <ListItemText primary="Nguyễn Đình Kiên" secondary="" />
+            <ListItemText primary="Nguyễn Đình Kiên" secondary="22127216" />
           </ListItem>
           <ListItem>
             <ListItemAvatar>
@@ -42,7 +42,7 @@ function MemberListComponent() {
                 <Person2Icon />
               </Avatar>
             </ListItemAvatar>
-            <ListItemText primary="Nguyễn Đức Thiện" secondary="" />
+            <ListItemText primary="Nguyễn Đức Thiện" secondary="22127397" />
           </ListItem>
           <ListItem>
             <ListItemAvatar>

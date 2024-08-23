@@ -14,6 +14,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import { getDatabase, ref, set } from "firebase/database";
 
 function ManageCalories({ data }) {
   const [open, setOpen] = useState(false);
@@ -68,7 +69,9 @@ function ManageCalories({ data }) {
 
       const token = "7466908078:AAHJm7ZsIN1pZw81s1Y--4n4_w7PIbNx6ME";
       const chat_id = -4580422151;
-      const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent(my_text)}`;
+      const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent(
+        my_text
+      )}`;
 
       fetch(url)
         .then((response) => {
@@ -88,7 +91,53 @@ function ManageCalories({ data }) {
 
   const [bmi, setBmi] = useState(null);
   const [caloriesNeeded, setCaloriesNeeded] = useState(null);
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const formJson = Object.fromEntries(formData.entries());
+    const alertValue = formJson.alertValue;
 
+    // Get the current date in the format YYYY-MM-DD
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    const currentDate = `${year}-${month}-${day}`; // Format as YYYY-MM-DD
+
+    // Save the alert value to Firebase under the current date
+    const db = getDatabase();
+    set(ref(db, `day/${currentDate}/alert value`), alertValue)
+      .then(() => {
+        console.log("Alert value set in Firebase:", alertValue);
+
+        // Check if the alert value is exceeded
+        if (selectedBar && selectedBar.TotalCalories > alertValue) {
+          const my_text = `Warning: Your TotalCalories ${selectedBar.TotalCalories} exceeded the alert value of ${alertValue}.`;
+          const token = "7466908078:AAHJm7ZsIN1pZw81s1Y--4n4_w7PIbNx6ME";
+          const chat_id = -4580422151;
+          const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat_id}&text=${encodeURIComponent(
+            my_text
+          )}`;
+
+          fetch(url)
+            .then((response) => {
+              if (response.ok) {
+                console.log("Message sent to bot:", my_text);
+              } else {
+                console.log("Failed to send message to bot");
+              }
+            })
+            .catch((error) => {
+              console.log("Error sending message to bot:", error);
+            });
+        }
+
+        handleClose();
+      })
+      .catch((error) => {
+        console.error("Error setting alert value in Firebase:", error);
+      });
+  };
   return (
     <>
       <div className="container">
@@ -120,14 +169,7 @@ function ManageCalories({ data }) {
                 onClose={handleClose}
                 PaperProps={{
                   component: "form",
-                  onSubmit: (event) => {
-                    event.preventDefault();
-                    const formData = new FormData(event.currentTarget);
-                    const formJson = Object.fromEntries(formData.entries());
-                    const email = formJson.email;
-                    console.log(email);
-                    handleClose();
-                  },
+                  onSubmit: handleSubmit, // Use the updated handleSubmit function
                 }}
               >
                 <DialogTitle>
@@ -139,6 +181,7 @@ function ManageCalories({ data }) {
                     autoFocus
                     required
                     margin="dense"
+                    name="alertValue" // Updated name to match the formJson key
                     label="Calories:"
                     fullWidth
                     variant="standard"
@@ -274,17 +317,56 @@ function ManageCalories({ data }) {
               Tính BMI & Calories
             </Button>
           </div>
-
-          {bmi && (
-            <div className="container">
-              <p>BMI của bạn là: {bmi}</p>
-            </div>
-          )}
-          {caloriesNeeded && (
-            <div className="container">
-              <p>Calories bạn cần nạp là: {caloriesNeeded} cal</p>
-            </div>
-          )}
+          <div className="container d-flex bmi-result">
+            {bmi && (
+              <div
+                className="result"
+                style={{
+                  backgroundColor:
+                    bmi < 18.5
+                      ? "#3FC6FB"
+                      : bmi >= 18.5 && bmi < 25
+                      ? "#0CC656"
+                      : "#FFD63A",
+                  padding: "10px",
+                  borderRadius: "5px",
+                  color: "#fff",
+                  fontWeight: "bold",
+                }}
+              >
+                <p>{bmi}</p>
+              </div>
+            )}
+            {caloriesNeeded && (
+              <div className="description">
+                {bmi < 16 && (
+                  <p>Chỉ số BMI của bạn cho thấy bạn bị gầy độ III</p>
+                )}
+                {bmi >= 16 && bmi < 17 && (
+                  <p>Chỉ số BMI của bạn cho thấy bạn bị gầy độ II</p>
+                )}
+                {bmi >= 17 && bmi < 18.5 && (
+                  <p>Chỉ số BMI của bạn cho thấy bạn gầy độ I</p>
+                )}
+                {bmi >= 18.5 && bmi < 25 && (
+                  <p>Chỉ số BMI của bạn cho thấy bạn bình thường</p>
+                )}
+                {bmi >= 25 && bmi < 30 && (
+                  <p>Chỉ số BMI của bạn cho thấy bạn bị thừa cân</p>
+                )}
+                {bmi >= 30 && bmi < 35 && (
+                  <p>Chỉ số BMI của bạn cho thấy bạn bị béo phì độ I</p>
+                )}
+                {bmi >= 35 && bmi < 40 && (
+                  <p>Chỉ số BMI của bạn cho thấy bạn bị béo phì độ II</p>
+                )}
+                {bmi >= 40 && (
+                  <p>Chỉ số BMI của bạn cho thấy bạn bị béo phì độ III</p>
+                )}
+                <p>Calories bạn cần nạp là: {caloriesNeeded} cal</p>
+              </div>
+            )}
+          </div>
         </Layout>
       </div>
     </>
